@@ -1,0 +1,65 @@
+# ==========================================
+# Blue Hawk Ops — Global .gitignore
+# ==========================================
+
+# Environment variables & secrets (Zero-Leakage Policy)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+!.env.example
+!frontend/.env.example
+!backend/.env.example
+
+# Python & Backend Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+backend/venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+*.sqlite
+*.sqlite3
+*.db
+blue_hawk_ops.db
+backend/blue_hawk_ops.db
+
+# Node.js & Frontend Artifacts
+frontend/node_modules/
+node_modules/
+frontend/.next/
+.next/
+frontend/out/
+out/
+frontend/build/
+build/
+.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.tsbuildinfo
+
+# Operating Systems & IDEs
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Logs & Runtime Dumps
+*.log
+logs/
