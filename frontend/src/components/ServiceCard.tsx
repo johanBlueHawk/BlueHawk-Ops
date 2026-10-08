@@ -46,6 +46,23 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ integration, onSync })
       lastSync: integration?.last_sync_at ? new Date(integration.last_sync_at).toLocaleTimeString() : "En línea"
     },
     {
+      id: "inventory-api",
+      provider: "inventory",
+      name: "BlueHawk Inventory (Gestión de Activos)",
+      status: "OPERATIVO (API REST)",
+      statusClass: "text-emerald-700 bg-emerald-50 border-emerald-200",
+      host: "inventory.bluehawktech.com/api/v1 (HTTPS)",
+      auth: "Bearer Token (JWT 8h / Rol Consulta)",
+      metrics: [
+        { label: "Protocolo", value: "REST API HTTPS" },
+        { label: "Paginación", value: "500 activos / página" },
+        { label: "Reconciliación", value: "Motor Determinista Ops" },
+        { label: "Seguridad", value: "Strict Read-Only" }
+      ],
+      isLive: false,
+      lastSync: "Enlace Directo Backend"
+    },
+    {
       id: "fortigate-vpn",
       provider: "fortigate",
       name: "FortiOS REST API (Firewall & Perímetro)",
@@ -108,6 +125,8 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ integration, onSync })
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 border border-slate-200">
                   {conn.provider === "unifi" ? (
                     <Wifi className="h-5 w-5 text-sky-600" />
+                  ) : conn.provider === "inventory" ? (
+                    <Database className="h-5 w-5 text-amber-600" />
                   ) : conn.provider === "fortigate" ? (
                     <ShieldAlert className="h-5 w-5 text-blue-600" />
                   ) : conn.provider === "synology" ? (

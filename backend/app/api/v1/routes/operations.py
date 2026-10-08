@@ -129,6 +129,12 @@ async def sync_site_inventory(
         "reconciliation": recon_result
     }
 
+@router.get("/integrations/inventory/health")
+async def check_inventory_health():
+    """Verifica la conectividad y estado de salud del servicio BlueHawk Inventory."""
+    connector = BlueHawkInventoryConnector()
+    return await connector.check_health()
+
 # --- Integration Runs & Synchronization ---
 @router.post("/integrations/{integration_id}/sync", response_model=IntegrationRunResponse)
 async def execute_integration_sync(

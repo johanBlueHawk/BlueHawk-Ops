@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from typing import List
+from typing import List, Optional
 import os
 
 class Settings(BaseSettings):
@@ -25,6 +25,13 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000"
     ]
+
+    # BlueHawk Inventory Integration
+    INVENTORY_API_URL: str = "https://inventory.bluehawktech.com/api/v1"
+    INVENTORY_USERNAME: Optional[str] = None
+    INVENTORY_PASSWORD: Optional[str] = None
+    INVENTORY_API_TOKEN: Optional[str] = None
+    INVENTORY_DB_PATH: Optional[str] = None
 
     class Config:
         env_file = ".env"
