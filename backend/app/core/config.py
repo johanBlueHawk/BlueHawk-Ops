@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings
-from typing import List, Optional
+from pydantic import Field, field_validator
+from pathlib import Path
+from typing import List, Optional, Union
 import os
 
 class Settings(BaseSettings):
@@ -21,20 +23,37 @@ class Settings(BaseSettings):
     ENCRYPTION_MASTER_KEY: str = "YjRhMWYwZjdlNzY0MmY3MjBhNDM3MmE1MDk2YTFiOWM="
     
     # CORS
-    ALLOWED_ORIGINS: List[str] = [
+    ALLOWED_ORIGINS: Union[List[str], str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000"
     ]
 
+    @field_validator("ALLOWED_ORIGINS")
+    def assemble_cors_origins(cls, v):
+        if isinstance(v, str):
+            if v.strip().startswith("["):
+                import json
+                return json.loads(v)
+            return [i.strip() for i in v.split(",") if i.strip()]
+        return v
+
     # BlueHawk Inventory Integration
     INVENTORY_API_URL: str = "https://inventory.bluehawktech.com/api/v1"
     INVENTORY_USERNAME: Optional[str] = None
-    INVENTORY_PASSWORD: Optional[str] = None
-    INVENTORY_API_TOKEN: Optional[str] = None
+    INVENTORY_PASSWORD: Optional[str] = Field(default=None, repr=False)
+    INVENTORY_API_TOKEN: Optional[str] = Field(default=None, repr=False)
     INVENTORY_DB_PATH: Optional[str] = None
 
+    # Zammad Helpdesk & Ticketing Integration
+    ZAMMAD_HTTP_URL: str = "https://support.bluehawktech.com"
+    ZAMMAD_API_TOKEN: Optional[str] = Field(default=None, repr=False)
+    ZAMMAD_USERNAME: Optional[str] = None
+    ZAMMAD_PASSWORD: Optional[str] = Field(default=None, repr=False)
+    ZAMMAD_DEFAULT_GROUP: str = "Users"
+    ZAMMAD_CUSTOMER_EMAIL: str = "johan@bluehawktech.com"
+
     class Config:
-        env_file = ".env"
+        env_file = (".env", Path(__file__).resolve().parents[2] / ".env")
         case_sensitive = True
 
 settings = Settings()

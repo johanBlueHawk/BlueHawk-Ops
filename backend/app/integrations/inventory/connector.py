@@ -314,17 +314,7 @@ class BlueHawkInventoryConnector:
         cat = item.get("category")
         cat_name = cat.get("name") if isinstance(cat, dict) else str(cat or "Equipos")
 
-        raw_status = str(item.get("status") or "in_use")
-        status_map = {
-            "Activo": "in_use",
-            "En Uso": "in_use",
-            "in_use": "in_use",
-            "En Préstamo": "in_use",
-            "Mantenimiento": "maintenance",
-            "Baja": "decommissioned",
-            "Disponible": "available",
-        }
-        norm_status = status_map.get(raw_status, "in_use")
+        norm_status = self._normalize_status(item.get("status"))
 
         return {
             "inventory_id": item.get("id"),
@@ -343,6 +333,30 @@ class BlueHawkInventoryConnector:
             "purchase_date": item.get("purchase_date"),
             "warranty_expiry": item.get("warranty_expiry"),
         }
+
+    @staticmethod
+    def _normalize_status(status: Any) -> str:
+        status_map = {
+            "Activo": "in_use",
+            "En Uso": "in_use",
+            "in_use": "in_use",
+            "En Préstamo": "in_use",
+            "Mantenimiento": "maintenance",
+            "Baja": "decommissioned",
+            "Disponible": "available",
+            "Nuevo": "available",
+            "En almacén": "available",
+            "Asignado": "in_use",
+            "En reparación": "maintenance",
+            "Dañado": "damaged",
+            "Perdido": "lost",
+            "Retirado": "decommissioned",
+            "Desechado": "decommissioned",
+        }
+        normalized = str(status or "unknown").strip().casefold()
+        if normalized in {"in_use", "available", "maintenance", "damaged", "lost", "decommissioned", "unknown"}:
+            return normalized
+        return {key.casefold(): value for key, value in status_map.items()}.get(normalized, "unknown")
 
     def _fetch_from_sqlite(self) -> List[Dict[str, Any]]:
         """Extrae activos desde la base SQLite local en entornos de prueba o desarrollo desconectado."""
@@ -384,7 +398,7 @@ class BlueHawkInventoryConnector:
                 "category": cat_name or "Equipos",
                 "physical_location": loc_path or "Sede Principal",
                 "owner_or_responsible": assigned,
-                "status": status or "in_use",
+                "status": self._normalize_status(status),
                 "source_system": "bluehawk_inventory",
             })
         return assets

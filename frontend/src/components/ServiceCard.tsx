@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { 
   Wifi, Server, HardDrive, ShieldCheck, RefreshCw, 
   CheckCircle2, AlertTriangle, ShieldAlert, Cpu, 
-  Activity, ExternalLink, Network, Database
+  Activity, ExternalLink, Network, Database, Ticket
 } from "lucide-react";
 import { ClientIntegration } from "@/types";
 
@@ -61,6 +61,23 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ integration, onSync })
       ],
       isLive: false,
       lastSync: "Enlace Directo Backend"
+    },
+    {
+      id: "zammad-helpdesk",
+      provider: "zammad",
+      name: "Zammad Helpdesk (Ticketing & NOC Incidents)",
+      status: "OPERATIVO (API REST)",
+      statusClass: "text-emerald-700 bg-emerald-50 border-emerald-200",
+      host: "support.bluehawktech.com (HTTPS)",
+      auth: "HTTP Token (Token token=...)",
+      metrics: [
+        { label: "Agente Asignado", value: "Johan Vasquez" },
+        { label: "Grupo Primario", value: "Users" },
+        { label: "Ticketing Automático", value: "Discrepancias & Topología" },
+        { label: "Seguridad", value: "ticket.agent Scope" }
+      ],
+      isLive: false,
+      lastSync: "Enlace Directo Activo"
     },
     {
       id: "fortigate-vpn",
@@ -127,6 +144,8 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ integration, onSync })
                     <Wifi className="h-5 w-5 text-sky-600" />
                   ) : conn.provider === "inventory" ? (
                     <Database className="h-5 w-5 text-amber-600" />
+                  ) : conn.provider === "zammad" ? (
+                    <Ticket className="h-5 w-5 text-indigo-600" />
                   ) : conn.provider === "fortigate" ? (
                     <ShieldAlert className="h-5 w-5 text-blue-600" />
                   ) : conn.provider === "synology" ? (

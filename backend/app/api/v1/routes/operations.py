@@ -37,6 +37,7 @@ async def list_org_sites(org_id: str, db: AsyncSession = Depends(get_db)):
     return result.scalars().all()
 
 from app.integrations.inventory.connector import BlueHawkInventoryConnector
+from app.integrations.zammad.client import ZammadClient
 
 # --- Assets (Inventory Projection) ---
 @router.get("/sites/{site_id}/assets", response_model=List[AssetResponse])
@@ -134,6 +135,12 @@ async def check_inventory_health():
     """Verifica la conectividad y estado de salud del servicio BlueHawk Inventory."""
     connector = BlueHawkInventoryConnector()
     return await connector.check_health()
+
+@router.get("/integrations/zammad/health")
+async def check_zammad_health():
+    """Verifica la conectividad y estado de autenticación con Zammad Helpdesk."""
+    client = ZammadClient()
+    return await client.check_health()
 
 # --- Integration Runs & Synchronization ---
 @router.post("/integrations/{integration_id}/sync", response_model=IntegrationRunResponse)
