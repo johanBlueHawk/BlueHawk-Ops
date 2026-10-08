@@ -15,33 +15,28 @@ security_bearer = HTTPBearer(auto_error=False)
 
 # Seed Users (Idempotent, runs on startup or first request)
 async def seed_initial_users(db: AsyncSession):
-    res = await db.execute(select(User).limit(1))
-    if res.scalars().first() is None:
-        initial_users = [
-            User(
-                email="admin@bluehawk.tech",
-                hashed_password=hash_password("BlueHawk2026!"),
-                full_name="Johan Vasquez",
-                role="admin",
+    complex_defaults = {
+        "admin@bluehawk.tech": ("Johan_Admin#2026!SecOps", "Johan Vasquez", "admin"),
+        "tecnico@bluehawk.tech": ("Carlos_Tech#2026!OpsNOC", "Carlos Gomez", "technician"),
+        "operador@bluehawk.tech": ("Marcos_Op#2026!Live247", "Marcos Diaz", "operator"),
+    }
+    for email, (plain_pwd, name, role) in complex_defaults.items():
+        res = await db.execute(select(User).where(User.email == email))
+        user = res.scalar_one_or_none()
+        if not user:
+            user = User(
+                email=email,
+                hashed_password=hash_password(plain_pwd),
+                full_name=name,
+                role=role,
                 is_active=True
-            ),
-            User(
-                email="tecnico@bluehawk.tech",
-                hashed_password=hash_password("BlueHawk2026!"),
-                full_name="Carlos Gomez",
-                role="technician",
-                is_active=True
-            ),
-            User(
-                email="operador@bluehawk.tech",
-                hashed_password=hash_password("BlueHawk2026!"),
-                full_name="Marcos Diaz",
-                role="operator",
-                is_active=True
-            ),
-        ]
-        db.add_all(initial_users)
-        await db.commit()
+            )
+            db.add(user)
+        else:
+            # Upgrade simple password if present
+            if verify_password("BlueHawk2026!", user.hashed_password):
+                user.hashed_password = hash_password(plain_pwd)
+    await db.commit()
 
 async def get_current_user(
     auth: Optional[HTTPAuthorizationCredentials] = Depends(security_bearer),

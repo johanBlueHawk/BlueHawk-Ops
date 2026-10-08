@@ -6,6 +6,7 @@ from app.core.config import settings
 from app.persistence.database import engine, Base, AsyncSessionLocal
 from app.api.v1.routes.operations import router as ops_router
 from app.api.v1.routes.auth import router as auth_router, seed_initial_users
+from app.api.v1.routes.users import router as users_router
 
 # Lifespan event to create tables and seed users on startup
 @asynccontextmanager
@@ -53,6 +54,7 @@ async def add_security_headers(request, call_next):
 
 # Register API v1 Routers
 app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
+app.include_router(users_router, prefix=settings.API_V1_PREFIX)
 app.include_router(ops_router, prefix=settings.API_V1_PREFIX, tags=["Operations & Integrations"])
 
 @app.get("/health")

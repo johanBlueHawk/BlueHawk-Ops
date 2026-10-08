@@ -59,3 +59,50 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except Exception:
         return None
+
+import re
+import secrets
+import string
+
+def validate_password_complexity(password: str) -> None:
+    """Enforces high-security enterprise password complexity (NIST SP 800-63B / CIS).
+    - Minimum 12 characters
+    - At least 1 uppercase letter
+    - At least 1 lowercase letter
+    - At least 1 digit
+    - At least 1 special symbol
+    """
+    if not password or len(password) < 12:
+        raise ValueError("La contraseña debe tener un mínimo de 12 caracteres.")
+    if not re.search(r"[A-Z]", password):
+        raise ValueError("La contraseña debe incluir al menos una letra mayúscula.")
+    if not re.search(r"[a-z]", password):
+        raise ValueError("La contraseña debe incluir al menos una letra minúscula.")
+    if not re.search(r"\d", password):
+        raise ValueError("La contraseña debe incluir al menos un dígito numérico.")
+    if not re.search(r"[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]", password):
+        raise ValueError("La contraseña debe incluir al menos un carácter especial (!@#$%^&*...).")
+
+def generate_secure_random_password(length: int = 16) -> str:
+    """Generates cryptographically secure, high-entropy password satisfying complexity rules."""
+    length = max(length, 14)
+    uppers = string.ascii_uppercase
+    lowers = string.ascii_lowercase
+    digits = string.digits
+    specials = "!@#$%&*_-+=?"
+    
+    pwd = [
+        secrets.choice(uppers),
+        secrets.choice(uppers),
+        secrets.choice(lowers),
+        secrets.choice(lowers),
+        secrets.choice(digits),
+        secrets.choice(digits),
+        secrets.choice(specials),
+        secrets.choice(specials),
+    ]
+    all_chars = uppers + lowers + digits + specials
+    pwd += [secrets.choice(all_chars) for _ in range(length - len(pwd))]
+    secrets.SystemRandom().shuffle(pwd)
+    return "".join(pwd)
+

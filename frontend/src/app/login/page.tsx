@@ -43,12 +43,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = (roleEmail: string) => {
-    setEmail(roleEmail);
-    setPassword("BlueHawk2026!");
-    handleSubmit(undefined, roleEmail, "BlueHawk2026!");
-  };
-
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col justify-between p-6">
       {/* Top Header */}
@@ -187,67 +181,15 @@ export default function LoginPage() {
             </motion.button>
           </form>
 
-          {/* Quick 1-Click Access Testing Pills */}
-          <div className="mt-7 pt-5 border-t border-slate-100">
-            <span className="block text-center font-mono text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-2.5">
-              Acceso Rápido por Rol (1-Clic)
-            </span>
-
-            <div className="grid grid-cols-1 gap-2 font-mono text-[11px]">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("admin@bluehawk.tech")}
-                disabled={loading}
-                className="flex items-center justify-between rounded-xl bg-amber-50/60 border border-amber-200/80 px-3 py-2 text-left hover:bg-amber-100/70 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-                  <div>
-                    <span className="font-bold text-slate-900 block">Johan Vasquez</span>
-                    <span className="text-[10px] text-slate-500">admin@bluehawk.tech</span>
-                  </div>
-                </div>
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
-                  Admin (L3)
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("tecnico@bluehawk.tech")}
-                disabled={loading}
-                className="flex items-center justify-between rounded-xl bg-emerald-50/60 border border-emerald-200/80 px-3 py-2 text-left hover:bg-emerald-100/70 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <Wrench className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                  <div>
-                    <span className="font-bold text-slate-900 block">Carlos Gomez</span>
-                    <span className="text-[10px] text-slate-500">tecnico@bluehawk.tech</span>
-                  </div>
-                </div>
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
-                  Técnico (L2)
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin("operador@bluehawk.tech")}
-                disabled={loading}
-                className="flex items-center justify-between rounded-xl bg-blue-50/60 border border-blue-200/80 px-3 py-2 text-left hover:bg-blue-100/70 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <Shield className="h-3.5 w-3.5 text-blue-600 shrink-0" />
-                  <div>
-                    <span className="font-bold text-slate-900 block">Marcos Diaz</span>
-                    <span className="text-[10px] text-slate-500">operador@bluehawk.tech</span>
-                  </div>
-                </div>
-                <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded">
-                  Operador (L1)
-                </span>
-              </button>
+          {/* Enterprise Security Compliance Notice */}
+          <div className="mt-7 pt-5 border-t border-slate-100 font-mono text-[11px] text-slate-500">
+            <div className="flex items-center gap-2 text-slate-700 font-bold mb-1.5">
+              <ShieldCheck className="h-4 w-4 text-emerald-600" />
+              <span>Estándar de Seguridad Corporativo</span>
             </div>
+            <p className="text-[10px] text-slate-400 leading-relaxed">
+              Acceso restringido al personal autorizado del NOC. Las contraseñas requieren un mínimo de 12 caracteres, mayúsculas, minúsculas, números y símbolos especiales.
+            </p>
           </div>
         </motion.div>
       </main>

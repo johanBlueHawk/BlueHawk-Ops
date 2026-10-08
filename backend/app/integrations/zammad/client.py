@@ -23,7 +23,7 @@ class ZammadClient:
         default_group: Optional[str] = None,
         customer_email: Optional[str] = None,
     ):
-        self.base_url = (base_url or os.getenv("ZAMMAD_HTTP_URL", "https://soporte.bluehawk.tech")).rstrip("/")
+        self.base_url = (base_url or os.getenv("ZAMMAD_HTTP_URL", "https://support.bluehawktech.com")).rstrip("/")
         self.api_token = api_token or os.getenv("ZAMMAD_API_TOKEN", "")
         self.default_group = default_group or os.getenv("ZAMMAD_DEFAULT_GROUP", "Soporte IT")
         self.customer_email = customer_email or os.getenv("ZAMMAD_CUSTOMER_EMAIL", "ops-bot@bluehawk.tech")

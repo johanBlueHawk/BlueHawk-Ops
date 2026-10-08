@@ -20,12 +20,14 @@ import { ObservabilityCharts } from "@/components/ObservabilityCharts";
 import { InventoryReconciliationView } from "@/components/InventoryReconciliationView";
 import { ExecutiveReportsView } from "@/components/ExecutiveReportsView";
 import { DynamicActionIsland } from "@/components/DynamicActionIsland";
+import { UserManagementModal } from "@/components/UserManagementModal";
 import { API_BASE } from "@/config/api";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, token, isLoading } = useAuth();
   const [userRole, setUserRole] = useState<UserRole>("technician");
+  const [showUserManagement, setShowUserManagement] = useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [integrations, setIntegrations] = useState<ClientIntegration[]>([]);
@@ -368,8 +370,8 @@ export default function DashboardPage() {
 
             <RoleSelector
               currentRole={userRole}
-              onRoleChange={setUserRole}
               userName={user?.full_name}
+              onOpenUserManagement={() => setShowUserManagement(true)}
             />
 
             {integrations.length > 0 && (
@@ -654,6 +656,15 @@ export default function DashboardPage() {
         onSyncInventory={handleSyncInventory}
         isSyncing={syncingInventory}
       />
+
+      {/* Admin User Management Modal (Strictly Admin Access) */}
+      {userRole === "admin" && (
+        <UserManagementModal
+          isOpen={showUserManagement}
+          onClose={() => setShowUserManagement(false)}
+          token={token}
+        />
+      )}
     </div>
   );
 }
