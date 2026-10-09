@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional, Dict
@@ -7,32 +7,55 @@ from datetime import datetime, timezone
 from app.persistence.database import get_db
 from app.persistence.models.entities import (
     Organization, Site, ClientIntegration, Asset, NetworkDevice, 
-    DeviceObservation, IntegrationRun, Discrepancy
+    DeviceObservation, IntegrationRun, Discrepancy, User
 )
 from app.api.v1.schemas.domain import (
     OrganizationResponse, IntegrationResponse, IntegrationRunResponse,
     AssetResponse, NetworkDeviceResponse, TopologyTreeResponse, TopologyNode,
     DiscrepancyResponse, DiscrepancyResolveRequest
 )
+from app.api.v1.routes.auth import get_current_user
 from app.core.security import decrypt_secret
 from app.integrations.unifi.connector import UniFiConnector
 from app.services.reconciliation import ReconciliationEngine
 
 router = APIRouter()
 
+async def require_technician_or_admin(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """Valida en servidor que el usuario autenticado por JWT tenga privilegios L2/L3."""
+    if current_user.role not in ["technician", "admin"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Permiso denegado: El rol Operador (L1) solo tiene permisos de monitoreo y reporte. Esta acción de infraestructura requiere rol Técnico (L2) o Administrador (L3)."
+        )
+    return current_user
+
 # --- Organizations & Sites ---
 @router.get("/organizations", response_model=List[OrganizationResponse])
-async def list_organizations(db: AsyncSession = Depends(get_db)):
+async def list_organizations(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     result = await db.execute(select(Organization).order_by(Organization.name))
     return result.scalars().all()
 
 @router.get("/organizations/{org_id}/integrations", response_model=List[IntegrationResponse])
-async def list_org_integrations(org_id: str, db: AsyncSession = Depends(get_db)):
+async def list_org_integrations(
+    org_id: str, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     result = await db.execute(select(ClientIntegration).where(ClientIntegration.organization_id == org_id))
     return result.scalars().all()
 
 @router.get("/organizations/{org_id}/sites")
-async def list_org_sites(org_id: str, db: AsyncSession = Depends(get_db)):
+async def list_org_sites(
+    org_id: str, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     result = await db.execute(select(Site).where(Site.organization_id == org_id))
     return result.scalars().all()
 
@@ -41,22 +64,21 @@ from app.integrations.zammad.client import ZammadClient
 
 # --- Assets (Inventory Projection) ---
 @router.get("/sites/{site_id}/assets", response_model=List[AssetResponse])
-async def list_site_assets(site_id: str, db: AsyncSession = Depends(get_db)):
+async def list_site_assets(
+    site_id: str, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     result = await db.execute(select(Asset).where(Asset.site_id == site_id).order_by(Asset.asset_code))
     return result.scalars().all()
 
 @router.post("/sites/{site_id}/inventory/sync")
 async def sync_site_inventory(
     site_id: str, 
-    x_user_role: Optional[str] = Header("technician"),
+    current_user: User = Depends(require_technician_or_admin),
     db: AsyncSession = Depends(get_db)
 ):
     """Sincroniza los activos físicos de BlueHawk Inventory con la sede y ejecuta la reconciliación."""
-    if x_user_role == "operator":
-        raise HTTPException(
-            status_code=403,
-            detail="Permiso denegado: El rol Operador (L1) solo tiene permisos de monitoreo y reporte. La sincronización de infraestructura requiere rol Técnico o Admin."
-        )
 
     site = (await db.execute(select(Site).where(Site.id == site_id))).scalar_one_or_none()
     if not site:
@@ -131,13 +153,13 @@ async def sync_site_inventory(
     }
 
 @router.get("/integrations/inventory/health")
-async def check_inventory_health():
+async def check_inventory_health(current_user: User = Depends(get_current_user)):
     """Verifica la conectividad y estado de salud del servicio BlueHawk Inventory."""
     connector = BlueHawkInventoryConnector()
     return await connector.check_health()
 
 @router.get("/integrations/zammad/health")
-async def check_zammad_health():
+async def check_zammad_health(current_user: User = Depends(get_current_user)):
     """Verifica la conectividad y estado de autenticación con Zammad Helpdesk."""
     client = ZammadClient()
     return await client.check_health()
@@ -146,15 +168,9 @@ async def check_zammad_health():
 @router.post("/integrations/{integration_id}/sync", response_model=IntegrationRunResponse)
 async def execute_integration_sync(
     integration_id: str, 
-    x_user_role: Optional[str] = Header("technician"),
+    current_user: User = Depends(require_technician_or_admin),
     db: AsyncSession = Depends(get_db)
 ):
-    if x_user_role == "operator":
-        raise HTTPException(
-            status_code=403,
-            detail="Permiso denegado: El sondeo manual de red requiere rol Técnico o Admin."
-        )
-
     integ = (await db.execute(select(ClientIntegration).where(ClientIntegration.id == integration_id))).scalar_one_or_none()
     if not integ:
         raise HTTPException(status_code=404, detail="Integration not found")
@@ -204,7 +220,11 @@ async def execute_integration_sync(
         raise HTTPException(status_code=500, detail=f"Sync execution failed: {str(e)}")
 
 @router.get("/integrations/{integration_id}/runs", response_model=List[IntegrationRunResponse])
-async def list_integration_runs(integration_id: str, db: AsyncSession = Depends(get_db)):
+async def list_integration_runs(
+    integration_id: str, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     result = await db.execute(
         select(IntegrationRun)
         .where(IntegrationRun.integration_id == integration_id)
@@ -215,7 +235,11 @@ async def list_integration_runs(integration_id: str, db: AsyncSession = Depends(
 
 # --- Network Devices & Live Topology ---
 @router.get("/sites/{site_id}/devices", response_model=List[NetworkDeviceResponse])
-async def list_site_devices(site_id: str, db: AsyncSession = Depends(get_db)):
+async def list_site_devices(
+    site_id: str, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     result = await db.execute(
         select(NetworkDevice)
         .where(NetworkDevice.site_id == site_id)
@@ -224,7 +248,11 @@ async def list_site_devices(site_id: str, db: AsyncSession = Depends(get_db)):
     return result.scalars().all()
 
 @router.get("/sites/{site_id}/topology", response_model=TopologyTreeResponse)
-async def get_site_topology(site_id: str, db: AsyncSession = Depends(get_db)):
+async def get_site_topology(
+    site_id: str, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
     devs_res = await db.execute(select(NetworkDevice).where(NetworkDevice.site_id == site_id))
     devices = devs_res.scalars().all()
     
@@ -296,7 +324,8 @@ async def get_site_topology(site_id: str, db: AsyncSession = Depends(get_db)):
 async def list_site_discrepancies(
     site_id: str, 
     status: Optional[str] = Query(None),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     query = select(Discrepancy).where(Discrepancy.site_id == site_id)
     if status:
@@ -308,34 +337,28 @@ async def list_site_discrepancies(
 async def resolve_discrepancy(
     discrepancy_id: str,
     payload: DiscrepancyResolveRequest,
-    x_user_role: Optional[str] = Header("technician"),
+    current_user: User = Depends(require_technician_or_admin),
     db: AsyncSession = Depends(get_db)
 ):
-    if x_user_role == "operator":
-        raise HTTPException(
-            status_code=403,
-            detail="Permiso denegado: El rol Operador (L1) solo puede reportar anomalías y abrir tickets en Zammad. La resolución y firma de discrepancias de inventario requiere rol Técnico o Admin."
-        )
-
     disc = (await db.execute(select(Discrepancy).where(Discrepancy.id == discrepancy_id))).scalar_one_or_none()
     if not disc:
         raise HTTPException(status_code=404, detail="Discrepancy not found")
     
+    role_label = "Administrador" if current_user.role == "admin" else "Técnico"
     disc.status = payload.status
     disc.resolution_notes = payload.resolution_notes
-    disc.resolved_by = payload.resolved_by
+    disc.resolved_by = f"{current_user.full_name} ({role_label})"
     disc.resolved_at = datetime.now(timezone.utc)
     
     await db.commit()
     await db.refresh(disc)
     return disc
 
-from app.integrations.zammad.client import ZammadClient
-
 # --- Zammad Ticketing Integration ---
 @router.post("/discrepancies/{discrepancy_id}/create-ticket")
 async def create_zammad_ticket_for_discrepancy(
     discrepancy_id: str,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Crea un ticket contextualizado en Zammad para una discrepancia de inventario o red."""
@@ -373,6 +396,7 @@ async def create_zammad_ticket_for_discrepancy(
 • Ubicación en Rack / Piso: {location}
 • Causa Detectada: {reason}
 • Fecha de Detección: {disc.detected_at.strftime('%Y-%m-%d %H:%M:%S UTC')}
+• Reportado por: {current_user.full_name} ({current_user.email} - Rol: {current_user.role.capitalize()})
 
 📋 ACCIÓN DE SOPORTE SUGERIDA:
 1. Inspección física de acometida eléctrica y parcheo en rack.
@@ -405,6 +429,7 @@ async def create_zammad_ticket_for_discrepancy(
 @router.post("/nodes/{node_id}/create-ticket")
 async def create_zammad_ticket_for_node(
     node_id: str,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """Crea un ticket de soporte en Zammad para un nodo de red con su Runbook asociado."""
@@ -426,6 +451,7 @@ async def create_zammad_ticket_for_node(
 • IP de Gestión: {dev.management_ip or 'DHCP'}
 • MAC Address: {dev.mac_address or 'N/D'}
 • Firmware: {dev.firmware or 'N/D'}
+• Reportado por: {current_user.full_name} ({current_user.email} - Rol: {current_user.role.capitalize()})
 
 📋 RUNBOOK OPERATIVO DE EMERGENCIA:
 1. Verificar enlace troncal y consumo PoE en puerto uplink.

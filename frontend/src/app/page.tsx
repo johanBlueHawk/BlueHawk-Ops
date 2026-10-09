@@ -7,7 +7,8 @@ import {
   Network, Wifi, Server, Radio, AlertTriangle, RefreshCw, 
   Search, ShieldAlert, Cpu, Terminal, ArrowUpRight, Zap, 
   CheckCircle2, Clock, Filter, Activity, BarChart3, Database,
-  SlidersHorizontal, CheckSquare, Layers, LayoutGrid, FileText
+  SlidersHorizontal, CheckSquare, Layers, LayoutGrid, FileText,
+  BookOpen, ShieldCheck
 } from "lucide-react";
 import { Organization, ClientIntegration, TopologyNode, Discrepancy, NetworkDevice, Asset, UserRole } from "@/types";
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +22,8 @@ import { InventoryReconciliationView } from "@/components/InventoryReconciliatio
 import { ExecutiveReportsView } from "@/components/ExecutiveReportsView";
 import { DynamicActionIsland } from "@/components/DynamicActionIsland";
 import { UserManagementModal } from "@/components/UserManagementModal";
+import { ComplianceModal } from "@/components/ComplianceModal";
+import { DocumentationModal } from "@/components/DocumentationModal";
 import { API_BASE } from "@/config/api";
 
 export default function DashboardPage() {
@@ -28,6 +31,8 @@ export default function DashboardPage() {
   const { user, token, isLoading } = useAuth();
   const [userRole, setUserRole] = useState<UserRole>("technician");
   const [showUserManagement, setShowUserManagement] = useState(false);
+  const [showComplianceModal, setShowComplianceModal] = useState(false);
+  const [showDocumentationModal, setShowDocumentationModal] = useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [integrations, setIntegrations] = useState<ClientIntegration[]>([]);
@@ -134,7 +139,6 @@ export default function DashboardPage() {
       const res = await fetch(`${API_BASE}/integrations/${integrationId}/sync`, { 
         method: "POST",
         headers: {
-          "X-User-Role": userRole,
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
@@ -166,7 +170,6 @@ export default function DashboardPage() {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "X-User-Role": userRole,
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({
@@ -192,7 +195,6 @@ export default function DashboardPage() {
       const res = await fetch(`${API_BASE}/sites/${currentSiteId}/inventory/sync`, {
         method: "POST",
         headers: {
-          "X-User-Role": userRole,
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
@@ -362,6 +364,24 @@ export default function DashboardPage() {
 
           {/* Right: Client, User & Quick Actions */}
           <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={() => setShowDocumentationModal(true)}
+              title="Manual Operativo NOC"
+              className="hidden lg:flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95"
+            >
+              <BookOpen className="h-3.5 w-3.5 text-indigo-600" />
+              <span>Guía</span>
+            </button>
+
+            <button
+              onClick={() => setShowComplianceModal(true)}
+              title="Gobernanza & Políticas de Seguridad"
+              className="hidden lg:flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95"
+            >
+              <ShieldCheck className="h-3.5 w-3.5 text-blue-600" />
+              <span>Legal</span>
+            </button>
+
             <ClientSelector
               organizations={organizations}
               selectedOrg={selectedOrg}
@@ -372,6 +392,8 @@ export default function DashboardPage() {
               currentRole={userRole}
               userName={user?.full_name}
               onOpenUserManagement={() => setShowUserManagement(true)}
+              onOpenCompliance={() => setShowComplianceModal(true)}
+              onOpenDocumentation={() => setShowDocumentationModal(true)}
             />
 
             {integrations.length > 0 && (
@@ -657,6 +679,32 @@ export default function DashboardPage() {
         isSyncing={syncingInventory}
       />
 
+      {/* Enterprise NOC Footer */}
+      <footer className="mt-12 border-t border-slate-200 bg-white py-4 px-6 text-center text-xs font-mono text-slate-500 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <span>© 2026 Blue Hawk Technologies • WDBTECHNOLOGY, S.R.L.</span>
+          <span className="mx-2">•</span>
+          <span className="text-slate-400">Plataforma NOC v2.4</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setShowDocumentationModal(true)}
+            className="hover:text-indigo-600 hover:underline transition-colors flex items-center gap-1.5 font-semibold"
+          >
+            <BookOpen className="h-3.5 w-3.5 text-indigo-500" />
+            <span>Manual de Operación</span>
+          </button>
+          <span>•</span>
+          <button
+            onClick={() => setShowComplianceModal(true)}
+            className="hover:text-blue-600 hover:underline transition-colors flex items-center gap-1.5 font-semibold"
+          >
+            <ShieldCheck className="h-3.5 w-3.5 text-blue-500" />
+            <span>Gobernanza & Cumplimiento</span>
+          </button>
+        </div>
+      </footer>
+
       {/* Admin User Management Modal (Strictly Admin Access) */}
       {userRole === "admin" && (
         <UserManagementModal
@@ -665,6 +713,18 @@ export default function DashboardPage() {
           token={token}
         />
       )}
+
+      {/* Compliance & Legal Governance Modal */}
+      <ComplianceModal
+        isOpen={showComplianceModal}
+        onClose={() => setShowComplianceModal(false)}
+      />
+
+      {/* Practical Operator User Guide Modal */}
+      <DocumentationModal
+        isOpen={showDocumentationModal}
+        onClose={() => setShowDocumentationModal(false)}
+      />
     </div>
   );
 }

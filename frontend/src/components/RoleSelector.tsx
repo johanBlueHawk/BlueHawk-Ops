@@ -7,7 +7,7 @@ import { UserRole } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { 
   Shield, Wrench, ShieldCheck, ChevronDown, Check, 
-  User, Info, Lock, LogOut, ArrowRightLeft, Sparkles, Users
+  User, Info, Lock, LogOut, ArrowRightLeft, Sparkles, Users, BookOpen
 } from "lucide-react";
 
 interface RoleSelectorProps {
@@ -15,6 +15,8 @@ interface RoleSelectorProps {
   onRoleChange?: (role: UserRole) => void;
   userName?: string;
   onOpenUserManagement?: () => void;
+  onOpenCompliance?: () => void;
+  onOpenDocumentation?: () => void;
 }
 
 const ROLES_CONFIG: Record<UserRole, {
@@ -67,6 +69,8 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
   currentRole,
   userName,
   onOpenUserManagement,
+  onOpenCompliance,
+  onOpenDocumentation,
 }) => {
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -175,6 +179,45 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
                 </button>
               </div>
             )}
+
+            {/* Operational Guide & Compliance Modals */}
+            <div className="py-1 space-y-1">
+              {onOpenDocumentation && (
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenDocumentation();
+                  }}
+                  className="w-full flex items-center justify-between p-2 rounded-xl text-slate-700 hover:bg-indigo-50/80 hover:text-indigo-900 transition-colors font-medium text-xs"
+                >
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-indigo-600" />
+                    <span>Manual Operativo</span>
+                  </div>
+                  <span className="text-[9px] bg-indigo-50 text-indigo-700 font-bold px-1.5 py-0.2 rounded border border-indigo-200">
+                    Guía
+                  </span>
+                </button>
+              )}
+
+              {onOpenCompliance && (
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenCompliance();
+                  }}
+                  className="w-full flex items-center justify-between p-2 rounded-xl text-slate-700 hover:bg-blue-50/80 hover:text-blue-900 transition-colors font-medium text-xs"
+                >
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-blue-600" />
+                    <span>Gobernanza & Políticas</span>
+                  </div>
+                  <span className="text-[9px] bg-blue-50 text-blue-700 font-bold px-1.5 py-0.2 rounded border border-blue-200">
+                    Legal
+                  </span>
+                </button>
+              )}
+            </div>
 
             {/* Logout Action */}
             <div className="mt-2 pt-2 border-t border-slate-100">
