@@ -24,6 +24,7 @@ import { DynamicActionIsland } from "@/components/DynamicActionIsland";
 import { UserManagementModal } from "@/components/UserManagementModal";
 import { ComplianceModal } from "@/components/ComplianceModal";
 import { DocumentationModal } from "@/components/DocumentationModal";
+import { Sidebar, NavTab } from "@/components/Sidebar";
 import { API_BASE } from "@/config/api";
 
 export default function DashboardPage() {
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [showComplianceModal, setShowComplianceModal] = useState(false);
   const [showDocumentationModal, setShowDocumentationModal] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [integrations, setIntegrations] = useState<ClientIntegration[]>([]);
@@ -41,11 +43,31 @@ export default function DashboardPage() {
   const [devices, setDevices] = useState<NetworkDevice[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
   const [currentSiteId, setCurrentSiteId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "topology" | "reconciliation" | "reports" | "connectors">("overview");
+  const [activeTab, setActiveTab] = useState<NavTab>("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [syncingAll, setSyncingAll] = useState(false);
   const [syncingInventory, setSyncingInventory] = useState(false);
+
+  // Restore sidebar collapse state from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("bhops_sidebar_collapsed");
+      if (saved !== null) {
+        setIsSidebarCollapsed(saved === "true");
+      }
+    }
+  }, []);
+
+  const handleToggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("bhops_sidebar_collapsed", String(next));
+      }
+      return next;
+    });
+  };
 
   // Sync role with logged-in user and enforce authentication
   useEffect(() => {
@@ -267,153 +289,79 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-800">
-      {/* 1. Top Observability Header (Consola NOC / Apple HIG Clean Header) */}
-      <header className="sticky top-0 z-40 border-b border-slate-200/90 bg-white/95 backdrop-blur-md px-5 py-2.5 shadow-2xs print:hidden">
-        <div className="flex items-center justify-between gap-4">
-          
-          {/* Left: Brand Identity (Prominent & Clear) */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="relative h-10 w-36 sm:w-40">
-              <Image
-                src="/logo.png"
-                alt="Blue Hawk Technologies"
-                fill
-                className="object-contain object-left"
-                priority
-              />
+    <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex">
+      {/* 1. Bespoke Collapsible Sidebar */}
+      <Sidebar
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        pendingDiscrepancies={pendingDiscrepancies}
+        probesCount={integrations.length}
+        organizations={organizations}
+        selectedOrg={selectedOrg}
+        onSelectOrg={setSelectedOrg}
+        userRole={userRole}
+        userName={user?.full_name}
+        userEmail={user?.email}
+        onOpenUserManagement={() => setShowUserManagement(true)}
+        onOpenCompliance={() => setShowComplianceModal(true)}
+        onOpenDocumentation={() => setShowDocumentationModal(true)}
+        onSyncAll={integrations.length > 0 ? () => handleSync(integrations[0].id) : undefined}
+        isSyncingAll={syncingAll}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={handleToggleSidebar}
+      />
+
+      {/* 2. Main Content Canvas */}
+      <div className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${isSidebarCollapsed ? "ml-20" : "ml-64"}`}>
+        {/* Top Command Bar & Breadcrumb */}
+        <header className="sticky top-0 z-30 border-b border-slate-200/90 bg-white/95 backdrop-blur-md px-6 py-3 shadow-2xs print:hidden">
+          <div className="flex items-center justify-between gap-4">
+            {/* Left: Active Module Title & Breadcrumbs */}
+            <div className="flex items-center gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-base font-bold text-slate-900 tracking-tight">
+                    {activeTab === "overview" && "Panel General de Operaciones"}
+                    {activeTab === "topology" && "Topología Física de Red & Runbooks"}
+                    {activeTab === "reconciliation" && "Reconciliación de Activos & Drift"}
+                    {activeTab === "reports" && "Reportes Ejecutivos & Auditoría"}
+                    {activeTab === "connectors" && "Monitor de Sondas & Conectores"}
+                  </h1>
+                  <span className="font-mono text-[10px] bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full border border-slate-200 font-bold">
+                    [{selectedOrg?.code || "BH"}] {selectedOrg?.name || "Edificio Central"}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-sans mt-0.5">
+                  {activeTab === "overview" && "Supervisión 24/7 de telemetría de red, switches, gateways y APs"}
+                  {activeTab === "topology" && "Correlación jerárquica de puertos troncales con runbooks de emergencia"}
+                  {activeTab === "reconciliation" && "Cruce determinista entre BlueHawk Inventory y la infraestructura activa"}
+                  {activeTab === "reports" && "Métricas consolidadas de disponibilidad y SLA para juntas directivas"}
+                  {activeTab === "connectors" && "Sondas de diagnóstico en tiempo real con UniFi, Inventory y Zammad"}
+                </p>
+              </div>
             </div>
-            <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200/90 px-2.5 py-1 rounded-lg tracking-tight whitespace-nowrap shadow-2xs">
-              Blue Hawk Ops
-            </span>
-          </div>
 
-          {/* Center: Apple HIG Segmented Navigation Pill with Signature Blue Hawk Colors */}
-          <nav className="flex items-center rounded-xl bg-slate-100/90 p-1 border border-slate-200/80 font-mono text-xs gap-1 shadow-inner">
-            <button
-              onClick={() => setActiveTab("overview")}
-              className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap font-mono ${
-                activeTab === "overview"
-                  ? "bg-[#0b1329] text-white border-2 border-amber-400 font-bold shadow-xs scale-102"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 font-medium"
-              }`}
-            >
-              Panel
-            </button>
-
-            <button
-              onClick={() => setActiveTab("topology")}
-              className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap font-mono ${
-                activeTab === "topology"
-                  ? "bg-[#0b1329] text-white border-2 border-amber-400 font-bold shadow-xs scale-102"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 font-medium"
-              }`}
-            >
-              Topología
-            </button>
-
-            <button
-              onClick={() => setActiveTab("reconciliation")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all whitespace-nowrap font-mono ${
-                activeTab === "reconciliation"
-                  ? "bg-[#0b1329] text-white border-2 border-amber-400 font-bold shadow-xs scale-102"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 font-medium"
-              }`}
-            >
-              <span>Inventario</span>
-              {pendingDiscrepancies > 0 && (
-                <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-full leading-none ${
-                  activeTab === "reconciliation"
-                    ? "bg-amber-400 text-slate-950"
-                    : "bg-amber-500 text-slate-950"
-                }`}>
-                  {pendingDiscrepancies}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab("reports")}
-              className={`px-3 py-1.5 rounded-lg transition-all whitespace-nowrap font-mono ${
-                activeTab === "reports"
-                  ? "bg-[#0b1329] text-white border-2 border-amber-400 font-bold shadow-xs scale-102"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 font-medium"
-              }`}
-            >
-              Reportes
-            </button>
-
-            <button
-              onClick={() => setActiveTab("connectors")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all whitespace-nowrap font-mono ${
-                activeTab === "connectors"
-                  ? "bg-[#0b1329] text-white border-2 border-amber-400 font-bold shadow-xs scale-102"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 font-medium"
-              }`}
-            >
-              <span>Sondas</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full leading-none ${
-                activeTab === "connectors"
-                  ? "bg-amber-400 text-slate-950 font-black"
-                  : "text-slate-500 bg-slate-200/80"
-              }`}>
-                {integrations.length}
+            {/* Right: Quick Action Controls */}
+            <div className="flex items-center gap-2.5 shrink-0 font-mono text-xs">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold shadow-2xs">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{onlineCount}/{devices.length} Online</span>
               </span>
-            </button>
-          </nav>
 
-          {/* Right: Client, User & Quick Actions */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              onClick={() => setShowDocumentationModal(true)}
-              title="Manual Operativo NOC"
-              className="hidden lg:flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95"
-            >
-              <BookOpen className="h-3.5 w-3.5 text-indigo-600" />
-              <span>Guía</span>
-            </button>
-
-            <button
-              onClick={() => setShowComplianceModal(true)}
-              title="Gobernanza & Políticas de Seguridad"
-              className="hidden lg:flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 font-mono text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95"
-            >
-              <ShieldCheck className="h-3.5 w-3.5 text-blue-600" />
-              <span>Legal</span>
-            </button>
-
-            <ClientSelector
-              organizations={organizations}
-              selectedOrg={selectedOrg}
-              onSelect={setSelectedOrg}
-            />
-
-            <RoleSelector
-              currentRole={userRole}
-              userName={user?.full_name}
-              onOpenUserManagement={() => setShowUserManagement(true)}
-              onOpenCompliance={() => setShowComplianceModal(true)}
-              onOpenDocumentation={() => setShowDocumentationModal(true)}
-            />
-
-            {integrations.length > 0 && (
-              <button
-                onClick={() => handleSync(integrations[0].id)}
-                disabled={syncingAll || userRole === "operator"}
-                title={userRole === "operator" ? "El sondeo de red manual requiere rol Técnico o Admin" : "Sondear Red UniFi"}
-                className={`flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 font-mono text-xs font-semibold shadow-2xs transition-all ${
-                  userRole === "operator"
-                    ? "bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200/80"
-                    : "bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 active:scale-95 disabled:opacity-50"
-                }`}
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${syncingAll ? "animate-spin text-blue-600" : (userRole === "operator" ? "text-slate-400" : "text-blue-600")}`} />
-                <span className="hidden sm:inline text-xs">{userRole === "operator" ? "Sondeo (Técnico)" : (syncingAll ? "Sondeando..." : "Sondear Red")}</span>
-              </button>
-            )}
+              {userRole !== "operator" && currentSiteId && (
+                <button
+                  onClick={handleSyncInventory}
+                  disabled={syncingInventory}
+                  title="Sincronizar activos de BlueHawk Inventory"
+                  className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/80 px-3 py-1.5 font-bold text-blue-700 hover:bg-blue-100 transition-colors active:scale-95 disabled:opacity-50 shadow-2xs"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${syncingInventory ? "animate-spin text-blue-600" : "text-blue-600"}`} />
+                  <span className="hidden sm:inline">{syncingInventory ? "Sincronizando..." : "Sincronizar Inventario"}</span>
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
       {/* 2. Unified Search & NOC Indicator Bar */}
       <div className="border-b border-slate-200 bg-white px-6 py-2 print:hidden">
@@ -725,6 +673,7 @@ export default function DashboardPage() {
         isOpen={showDocumentationModal}
         onClose={() => setShowDocumentationModal(false)}
       />
+      </div>
     </div>
   );
 }
