@@ -1,0 +1,51 @@
+# ==============================================================================
+# BLUE HAWK OPS (BHOps) — CADDY PRODUCTION CONFIGURATION
+# Dominio: ops.bluehawktech.com (IP: 179.52.197.80)
+# ==============================================================================
+
+ops.bluehawktech.com {
+    # Compresión automática moderna
+    encode zstd gzip
+
+    # Cabeceras de seguridad HTTP
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # Rutas del Backend FastAPI Core (Puerto 8001)
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8001 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Endpoint de Salud del Backend
+    handle /health {
+        reverse_proxy 127.0.0.1:8001
+    }
+
+    # Frontend Next.js (Puerto 3000)
+    handle {
+        reverse_proxy 127.0.0.1:3000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    # Registro de accesos (Logs)
+    log {
+        output file /var/log/caddy/bhops_access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+    }
+}
