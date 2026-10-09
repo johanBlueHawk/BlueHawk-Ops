@@ -25,6 +25,7 @@ import { UserManagementModal } from "@/components/UserManagementModal";
 import { ComplianceModal } from "@/components/ComplianceModal";
 import { DocumentationModal } from "@/components/DocumentationModal";
 import { Sidebar, NavTab } from "@/components/Sidebar";
+import { BHOpsLogo } from "@/components/BHOpsLogo";
 import { API_BASE } from "@/config/api";
 
 export default function DashboardPage() {
@@ -271,15 +272,7 @@ export default function DashboardPage() {
   if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center font-mono">
-        <div className="relative h-10 w-36 mb-4">
-          <Image
-            src="/logo.png"
-            alt="Blue Hawk Technologies"
-            fill
-            className="object-contain"
-            priority
-          />
-        </div>
+        <BHOpsLogo variant="light" size="lg" className="mb-4" />
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <span className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
           <span>Iniciando Consola Central NOC...</span>

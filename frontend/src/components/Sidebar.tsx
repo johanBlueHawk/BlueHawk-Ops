@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Organization, UserRole } from "@/types";
 import { useAuth } from "@/context/AuthContext";
+import { BHOpsLogo } from "./BHOpsLogo";
 
 export type NavTab = "overview" | "topology" | "reconciliation" | "reports" | "connectors";
 
@@ -146,20 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-4 border-b border-slate-800/80">
         {!isCollapsed ? (
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative h-8 w-28 shrink-0">
-                <Image
-                  src="/logo.png"
-                  alt="Blue Hawk Technologies"
-                  fill
-                  className="object-contain object-left brightness-125"
-                  priority
-                />
-              </div>
-              <span className="font-mono text-[9px] bg-blue-500/20 text-blue-300 border border-blue-400/30 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider shrink-0">
-                Ops v2.4
-              </span>
-            </div>
+            <BHOpsLogo variant="dark" size="sm" />
             <button
               onClick={onToggleCollapse}
               title="Colapsar barra lateral"
@@ -170,9 +158,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600/30 border border-blue-500/40 text-blue-300 font-bold font-mono text-xs shadow-xs">
-              Ops
-            </div>
+            <BHOpsLogo variant="icon-only" size="sm" />
             <button
               onClick={onToggleCollapse}
               title="Expandir barra lateral"

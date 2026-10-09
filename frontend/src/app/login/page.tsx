@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
+import { BHOpsLogo } from "@/components/BHOpsLogo";
 import { 
   ShieldCheck, Lock, Mail, Eye, EyeOff, 
   ArrowRight, Loader2, AlertCircle, CheckCircle2,
@@ -62,20 +63,7 @@ export default function LoginPage() {
 
       {/* Top Header */}
       <header className="relative z-10 flex items-center justify-between border border-slate-200/80 bg-white/80 backdrop-blur-xl px-5 sm:px-7 py-3 rounded-2xl shadow-xs max-w-5xl mx-auto w-full">
-        <div className="flex items-center gap-3">
-          <div className="relative h-9 w-32 sm:w-36">
-            <Image
-              src="/logo.png"
-              alt="Blue Hawk Technologies"
-              fill
-              className="object-contain object-left"
-              priority
-            />
-          </div>
-          <span className="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200/90 px-2.5 py-1 rounded-lg tracking-tight">
-            Ops NOC
-          </span>
-        </div>
+        <BHOpsLogo variant="light" size="sm" />
 
         <div className="flex items-center gap-3 font-mono text-xs text-slate-600">
           <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-[11px]">

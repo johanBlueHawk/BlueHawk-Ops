@@ -16,8 +16,16 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Blue Hawk Ops — Centro de Observabilidad e Infraestructura",
+  title: "BHOps — Centro de Observabilidad e Infraestructura",
   description: "Plataforma de Operaciones, Redes y Telemetría de Blue Hawk Technologies",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
