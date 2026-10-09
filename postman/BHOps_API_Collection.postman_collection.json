@@ -1,0 +1,293 @@
+{
+  "info": {
+    "_postman_id": "bhops-api-v1-collection",
+    "name": "Blue Hawk Ops (BHOps) — API Core v1.0",
+    "description": "Colección completa de pruebas y documentación de la API REST de Blue Hawk Ops. Incluye autenticación JWT con captura automática de token, Zero Client Trust RBAC, topología de red, reconciliación de inventario y flujo de soporte en Zammad.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "01. Autenticación & Sesión",
+      "item": [
+        {
+          "name": "POST /auth/login (Admin L3)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Token access recibido', function () {",
+                  "    pm.expect(jsonData.access_token).to.be.a('string');",
+                  "    pm.environment.set('token', jsonData.access_token);",
+                  "});",
+                  "pm.test('Usuario tiene rol de Administrador', function () {",
+                  "    pm.expect(jsonData.user.role).to.eql('admin');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "POST /auth/login (Técnico L2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.environment.set('token', jsonData.access_token);",
+                  "pm.test('Usuario tiene rol Técnico', function () {",
+                  "    pm.expect(jsonData.user.role).to.eql('technician');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{techEmail}}\",\n  \"password\": \"{{techPassword}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "POST /auth/login (Operador L1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.environment.set('token', jsonData.access_token);",
+                  "pm.test('Usuario tiene rol Operador', function () {",
+                  "    pm.expect(jsonData.user.role).to.eql('operator');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{operatorEmail}}\",\n  \"password\": \"{{operatorPassword}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "GET /auth/me (Verificar Identidad Actual)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/auth/me", "host": ["{{baseUrl}}"], "path": ["auth", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Gestión de Usuarios (Admin L3)",
+      "item": [
+        {
+          "name": "GET /users (Listar Usuarios)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          }
+        },
+        {
+          "name": "POST /users (Crear Nuevo Usuario)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"noc.guardia@bluehawk.local\",\n  \"full_name\": \"Operador Guardia Nocturna\",\n  \"role\": \"operator\",\n  \"password\": \"Temporal@2026!Pass\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/users", "host": ["{{baseUrl}}"], "path": ["users"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Organizaciones & Sedes Multi-Tenant",
+      "item": [
+        {
+          "name": "GET /organizations (Listar Clientes)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/organizations", "host": ["{{baseUrl}}"], "path": ["organizations"] }
+          }
+        },
+        {
+          "name": "GET /organizations/{org_id}/sites",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/organizations/{{orgId}}/sites", "host": ["{{baseUrl}}"], "path": ["organizations", "{{orgId}}", "sites"] }
+          }
+        },
+        {
+          "name": "GET /organizations/{org_id}/integrations",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/organizations/{{orgId}}/integrations", "host": ["{{baseUrl}}"], "path": ["organizations", "{{orgId}}", "integrations"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Telemetría de Red & Topología",
+      "item": [
+        {
+          "name": "GET /sites/{site_id}/devices (Dispositivos Activos)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/sites/{{siteId}}/devices", "host": ["{{baseUrl}}"], "path": ["sites", "{{siteId}}", "devices"] }
+          }
+        },
+        {
+          "name": "GET /sites/{site_id}/topology (Árbol con Runbooks)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/sites/{{siteId}}/topology", "host": ["{{baseUrl}}"], "path": ["sites", "{{siteId}}", "topology"] }
+          }
+        },
+        {
+          "name": "POST /integrations/{integration_id}/sync (Sondear UniFi)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/integrations/{{integrationId}}/sync", "host": ["{{baseUrl}}"], "path": ["integrations", "{{integrationId}}", "sync"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Inventario Físico & Reconciliación",
+      "item": [
+        {
+          "name": "GET /sites/{site_id}/assets (Activos en Inventario)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/sites/{{siteId}}/assets", "host": ["{{baseUrl}}"], "path": ["sites", "{{siteId}}", "assets"] }
+          }
+        },
+        {
+          "name": "POST /sites/{site_id}/inventory/sync (Cruce Determinista)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/sites/{{siteId}}/inventory/sync", "host": ["{{baseUrl}}"], "path": ["sites", "{{siteId}}", "inventory", "sync"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Discrepancias & Gestión de Drift",
+      "item": [
+        {
+          "name": "GET /sites/{site_id}/discrepancies (Cola de Drift)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/sites/{{siteId}}/discrepancies", "host": ["{{baseUrl}}"], "path": ["sites", "{{siteId}}", "discrepancies"] }
+          }
+        },
+        {
+          "name": "POST /discrepancies/{id}/resolve (Firma Técnica)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"resolved\",\n  \"resolved_by\": \"Johan Vasquez (Técnico L2)\",\n  \"resolution_notes\": \"Equipo verificado físicamente en Rack de Telecomunicaciones. Enlace restaurado y parcheo auditado.\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/discrepancies/disc-001/resolve", "host": ["{{baseUrl}}"], "path": ["discrepancies", "disc-001", "resolve"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. Ticketing Helpdesk en Zammad",
+      "item": [
+        {
+          "name": "POST /discrepancies/{id}/create-ticket (Escalar Drift)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/discrepancies/disc-001/create-ticket", "host": ["{{baseUrl}}"], "path": ["discrepancies", "disc-001", "create-ticket"] }
+          }
+        },
+        {
+          "name": "POST /nodes/{node_id}/create-ticket (Incidente en Nodo)",
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/nodes/dev-ap-1f/create-ticket", "host": ["{{baseUrl}}"], "path": ["nodes", "dev-ap-1f", "create-ticket"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08. Diagnóstico de Salud & Sondas",
+      "item": [
+        {
+          "name": "GET /health (API Core Root)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "http://127.0.0.1:8001/health", "host": ["http://127.0.0.1:8001"], "path": ["health"] }
+          }
+        },
+        {
+          "name": "GET /integrations/inventory/health (Sonda Inventario)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/integrations/inventory/health", "host": ["{{baseUrl}}"], "path": ["integrations", "inventory", "health"] }
+          }
+        },
+        {
+          "name": "GET /integrations/zammad/health (Sonda Zammad)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/integrations/zammad/health", "host": ["{{baseUrl}}"], "path": ["integrations", "zammad", "health"] }
+          }
+        }
+      ]
+    }
+  ]
+}
