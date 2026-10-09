@@ -144,8 +144,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     >
       {/* 1. Header & Brand */}
       <div className="p-4 border-b border-slate-800/80">
-        <div className="flex items-center justify-between gap-2">
-          {!isCollapsed ? (
+        {!isCollapsed ? (
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="relative h-8 w-28 shrink-0">
                 <Image
@@ -160,24 +160,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 Ops v2.4
               </span>
             </div>
-          ) : (
-            <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600/30 border border-blue-500/40 text-blue-400 font-bold font-mono text-sm shadow-xs">
-              BH
-            </div>
-          )}
-
-          <button
-            onClick={onToggleCollapse}
-            title={isCollapsed ? "Expandir barra lateral" : "Colapsar barra lateral"}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors shrink-0"
-          >
-            {isCollapsed ? (
-              <PanelLeftOpen className="h-4 w-4" />
-            ) : (
+            <button
+              onClick={onToggleCollapse}
+              title="Colapsar barra lateral"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors shrink-0"
+            >
               <PanelLeftClose className="h-4 w-4" />
-            )}
-          </button>
-        </div>
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600/30 border border-blue-500/40 text-blue-300 font-bold font-mono text-xs shadow-xs">
+              Ops
+            </div>
+            <button
+              onClick={onToggleCollapse}
+              title="Expandir barra lateral"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
+            >
+              <PanelLeftOpen className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {/* Client / Organization Switcher */}
         <div className="mt-3 relative" ref={orgMenuRef}>
@@ -271,13 +275,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   key={item.id}
                   onClick={() => onSelectTab(item.id)}
                   title={isCollapsed ? item.label : undefined}
-                  className={`w-full flex items-center justify-between p-2.5 rounded-xl transition-all group ${
+                  className={`w-full flex items-center p-2.5 rounded-xl transition-all group relative ${
+                    isCollapsed ? "justify-center" : "justify-between"
+                  } ${
                     isActive
                       ? "bg-[#162347] text-white border-2 border-amber-400 font-bold shadow-md shadow-blue-950/40"
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 font-medium"
                   }`}
                 >
-                  <div className="flex items-center gap-3 min-w-0">
+                  <div className={`flex items-center gap-3 min-w-0 ${isCollapsed ? "justify-center" : ""}`}>
                     <Icon className={`h-4.5 w-4.5 shrink-0 transition-transform group-hover:scale-110 ${
                       isActive ? "text-amber-400" : "text-slate-400 group-hover:text-slate-200"
                     }`} />
@@ -292,7 +298,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         {item.badge.count}
                       </span>
                     ) : (
-                      <span className="h-2 w-2 rounded-full bg-amber-400 absolute right-2 top-2 animate-pulse" />
+                      <span className="h-2 w-2 rounded-full bg-amber-400 absolute top-1.5 right-1.5 animate-pulse" />
                     )
                   )}
                 </button>

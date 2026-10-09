@@ -26,7 +26,7 @@ interface ObservabilityChartsProps {
   discrepancies: Discrepancy[];
 }
 
-const COLORS = ["#0ea5e9", "#6366f1", "#10b981", "#f59e0b", "#8b5cf6"];
+const COLORS = ["#1e40af", "#2563eb", "#38bdf8", "#64748b", "#94a3b8"];
 
 // Custom Apple Frosted Tooltip
 const AppleChartTooltip = ({ active, payload, label }: any) => {
@@ -207,14 +207,14 @@ export const ObservabilityCharts: React.FC<ObservabilityChartsProps> = ({
         <div className="apple-card p-5 flex flex-col justify-between">
           <div className="flex items-center justify-between gap-3 border-b border-slate-100/80 pb-3">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[10px] bg-indigo-50 text-indigo-600 ring-1 ring-indigo-500/15">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[10px] bg-blue-50 text-blue-600 ring-1 ring-blue-500/15">
                 <Wifi className="h-4 w-4" />
               </div>
               <span className="text-xs font-semibold tracking-tight text-slate-900 truncate">
                 Carga Wi-Fi & Nodos
               </span>
             </div>
-            <span className="shrink-0 rounded-full bg-indigo-50 px-2.5 py-0.5 font-mono text-[10px] font-bold text-indigo-700 ring-1 ring-indigo-500/20">
+            <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 font-mono text-[10px] font-bold text-slate-700 ring-1 ring-slate-200">
               112 Clientes
             </span>
           </div>
@@ -242,7 +242,7 @@ export const ObservabilityCharts: React.FC<ObservabilityChartsProps> = ({
                 <Tooltip content={<AppleChartTooltip />} />
                 <Bar
                   dataKey="clientes"
-                  fill="#6366f1"
+                  fill="#2563eb"
                   radius={[6, 6, 0, 0]}
                   name="Clientes Conectados"
                 />

@@ -416,60 +416,85 @@ export default function DashboardPage() {
         {/* Metric Cards Row (Overview only & print:hidden) */}
         {activeTab !== "reports" && (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6 font-mono print:hidden">
+            {/* 1. Dispositivos en Red */}
             <div className="apple-card p-4 flex flex-col justify-between">
               <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold">
                 <span>DISPOSITIVOS EN RED</span>
-                <Database className="h-3.5 w-3.5 text-blue-600" />
+                <Database className="h-3.5 w-3.5 text-slate-400" />
               </div>
               <div className="mt-2 text-2xl font-black text-slate-900">{devices.length}</div>
               <div className="text-[10px] text-slate-500 font-semibold">UniFi Mesh Nodos</div>
             </div>
 
-            <div className="apple-card p-4 flex flex-col justify-between">
+            {/* 2. Enlaces Activos (Semántico: Salud 100%) */}
+            <div className="apple-card p-4 flex flex-col justify-between border-emerald-200/80 bg-emerald-50/10">
               <div className="flex items-center justify-between text-[11px] text-emerald-700 font-bold">
                 <span>ENLACES ACTIVOS</span>
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
               </div>
               <div className="mt-2 text-2xl font-black text-emerald-600">{onlineCount}</div>
-              <div className="text-[10px] text-emerald-700 font-medium">100% Reachable</div>
+              <div className="text-[10px] text-emerald-700 font-semibold flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>100% Reachable</span>
+              </div>
             </div>
 
+            {/* 3. Puntos de Acceso */}
             <div className="apple-card p-4 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-[11px] text-blue-700 font-bold">
+              <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold">
                 <span>PUNTOS DE ACCESO</span>
-                <Wifi className="h-3.5 w-3.5 text-blue-600" />
+                <Wifi className="h-3.5 w-3.5 text-slate-400" />
               </div>
-              <div className="mt-2 text-2xl font-black text-blue-600">{apCount}</div>
+              <div className="mt-2 text-2xl font-black text-slate-900">{apCount}</div>
               <div className="text-[10px] text-slate-500 font-semibold">Wi-Fi 7 & 6 Pro</div>
             </div>
 
+            {/* 4. Switch Trunks */}
             <div className="apple-card p-4 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-[11px] text-indigo-700 font-bold">
+              <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold">
                 <span>SWITCH TRUNKS</span>
-                <Server className="h-3.5 w-3.5 text-indigo-600" />
+                <Server className="h-3.5 w-3.5 text-slate-400" />
               </div>
-              <div className="mt-2 text-2xl font-black text-indigo-600">{switchCount}</div>
+              <div className="mt-2 text-2xl font-black text-slate-900">{switchCount}</div>
               <div className="text-[10px] text-slate-500 font-semibold">Aggregation + PoE</div>
             </div>
 
+            {/* 5. Activos Físicos */}
             <div className="apple-card p-4 flex flex-col justify-between">
-              <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold">
+              <div className="flex items-center justify-between text-[11px] text-slate-400 font-bold">
                 <span>ACTIVOS FÍSICOS</span>
-                <Radio className="h-3.5 w-3.5 text-purple-600" />
+                <Radio className="h-3.5 w-3.5 text-slate-400" />
               </div>
-              <div className="mt-2 text-2xl font-black text-purple-600">{assets.length}</div>
+              <div className="mt-2 text-2xl font-black text-slate-900">{assets.length}</div>
               <div className="text-[10px] text-slate-500 font-semibold">BlueHawk Inventory</div>
             </div>
 
-            <div className={`apple-card p-4 flex flex-col justify-between ${
-              pendingDiscrepancies > 0 ? "bg-amber-50/20 border-amber-300" : ""
+            {/* 6. Reconciliación (Semántico: Drift / Advertencia) */}
+            <div className={`apple-card p-4 flex flex-col justify-between transition-all ${
+              pendingDiscrepancies > 0 
+                ? "bg-amber-50/40 border-amber-300 ring-1 ring-amber-400/20" 
+                : "border-slate-200"
             }`}>
-              <div className="flex items-center justify-between text-[11px] text-amber-700 font-bold">
-                <span>RECONCILIACIÓN</span>
-                <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+              <div className="flex items-center justify-between text-[11px] font-bold">
+                <span className={pendingDiscrepancies > 0 ? "text-amber-800" : "text-slate-400"}>
+                  RECONCILIACIÓN
+                </span>
+                {pendingDiscrepancies > 0 ? (
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600 animate-pulse" />
+                ) : (
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                )}
               </div>
-              <div className="mt-2 text-2xl font-black text-amber-600">{pendingDiscrepancies}</div>
-              <div className="text-[10px] text-amber-700 font-semibold">Pendientes de Firma</div>
+              <div className={`mt-2 text-2xl font-black ${
+                pendingDiscrepancies > 0 ? "text-amber-600" : "text-slate-900"
+              }`}>
+                {pendingDiscrepancies}
+              </div>
+              <div className={`text-[10px] font-semibold ${
+                pendingDiscrepancies > 0 ? "text-amber-700" : "text-emerald-700"
+              }`}>
+                {pendingDiscrepancies > 0 ? "Pendientes de Firma" : "En Regla (0 Drift)"}
+              </div>
             </div>
           </div>
         )}
@@ -514,11 +539,11 @@ export default function DashboardPage() {
                           <tr key={dev.id} className="hover:bg-slate-50 transition-colors">
                             <td className="py-2.5 font-bold text-slate-900 flex items-center gap-2">
                               {dev.device_type === "ap" ? (
-                                <Wifi className="h-3.5 w-3.5 text-emerald-600" />
+                                <Wifi className="h-3.5 w-3.5 text-slate-500" />
                               ) : dev.device_type === "switch" ? (
-                                <Server className="h-3.5 w-3.5 text-indigo-600" />
+                                <Server className="h-3.5 w-3.5 text-slate-500" />
                               ) : (
-                                <Radio className="h-3.5 w-3.5 text-blue-600" />
+                                <Radio className="h-3.5 w-3.5 text-slate-500" />
                               )}
                               <span>{dev.name}</span>
                             </td>
